@@ -1,0 +1,11 @@
+I will start by listing the files in the repository to understand the project structure and locate the relevant files for implementing `doctor.sh`.
+I will check the parent directory to determine if I am in a subdirectory of the project and to find the `.grkr` directory.
+I will check the project's root directory at `/Users/stepango/Projects/kokoko/` to locate `doctor.sh` and the `.grkr` directory, as specified in the research findings.
+I will read the current content of `doctor.sh` from the root directory to identify its existing functionality and determine the necessary improvements.
+I will list all files in the current worktree to verify if `doctor.sh` and the `.grkr` directory exist, as they are essential for implementing the task.
+I'll read the `.git` file to determine the worktree's branch and investigate why the expected files are missing from the current directory.
+I will check the current branch to understand the state of the worktree and why the necessary files are missing.
+I will list the files on the `main` branch to determine if the missing `doctor.sh` and `.grkr` directory are available there.
+I'll check the current branch in the original repository at `/Users/stepango/Projects/kokoko/` to understand why the worktree has fewer files than expected.
+I'll check the `git status` in the original repository at `/Users/stepango/Projects/kokoko/` to determine if the missing files are untracked or modified.
+I will attempt to copy the existing `doctor.sh` and the `.grkr` directory from the root of the original repository to my current worktree using `cp` to proceed with the implementation as planned.
