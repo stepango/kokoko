@@ -1,0 +1,32 @@
+{
+  "issue_number": 1,
+  "task_slug": "issue-1-implement-doctor-sh",
+  "status": "started",
+  "stages": {
+    "research": {
+      "status": "done",
+      "comment_id": "IC_kwDORy-rE873Ns5u"
+    },
+    "plan": {
+      "status": "done",
+      "comment_id": "IC_kwDORy-rE873NtTL"
+    },
+    "decision": {
+      "status": "proceed",
+      "comment_id": ""
+    },
+    "implementation": {
+      "status": "done",
+      "comment_id": ""
+    },
+    "test": {
+      "status": "done",
+      "comment_id": ""
+    },
+    "status": {
+      "status": "complete",
+      "comment_id": ""
+    }
+  },
+  "updated_at": "2026-03-28T08:14:04Z"
+}
