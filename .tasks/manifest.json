@@ -1,0 +1,76 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "slug": "doctor-sh",
+      "title": "Implement doctor.sh",
+      "status": "todo"
+    },
+    {
+      "id": 2,
+      "slug": "supervisor-loop-logging-locks",
+      "title": "Implement supervisor loop + logging + locks",
+      "status": "todo"
+    },
+    {
+      "id": 3,
+      "slug": "sync-main-worker",
+      "title": "Implement sync-main worker",
+      "status": "todo"
+    },
+    {
+      "id": 4,
+      "slug": "project-issue-picker",
+      "title": "Implement project issue picker",
+      "status": "todo"
+    },
+    {
+      "id": 5,
+      "slug": "issue-workflow-checkpoints",
+      "title": "Implement issue workflow with research and plan checkpoints",
+      "status": "todo"
+    },
+    {
+      "id": 6,
+      "slug": "implement-or-refuse-gate",
+      "title": "Implement implement-or-refuse decision gate",
+      "status": "todo"
+    },
+    {
+      "id": 7,
+      "slug": "refusal-worker-backlog",
+      "title": "Implement refusal worker and Backlog transition",
+      "status": "todo"
+    },
+    {
+      "id": 8,
+      "slug": "implement-stage",
+      "title": "Implement Stage 4: Implement",
+      "status": "todo"
+    },
+    {
+      "id": 9,
+      "slug": "test-stage",
+      "title": "Implement Stage 5: Test",
+      "status": "todo"
+    },
+    {
+      "id": 10,
+      "slug": "comment-scanning-reactions",
+      "title": "Implement comment scanning + reactions",
+      "status": "todo"
+    },
+    {
+      "id": 11,
+      "slug": "pr-conflict-resolution",
+      "title": "Implement PR conflict resolution",
+      "status": "todo"
+    },
+    {
+      "id": 12,
+      "slug": "cleanup-retry-polish",
+      "title": "Implement cleanup and retry polish",
+      "status": "todo"
+    }
+  ]
+}
