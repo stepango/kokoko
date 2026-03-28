@@ -43,35 +43,60 @@ for tool in "${REQUIRED_TOOLS[@]}"; do
     fi
     
     # Basic execution test
-    if [ "$tool" == "gemini" ]; then
-        if ! gemini --help > /dev/null 2>&1; then
-            fail "Tool '$tool' is installed but failed to execute (--help)."
-        fi
-    elif [ "$tool" == "gh" ]; then
-        if ! gh --version > /dev/null 2>&1; then
-            fail "Tool '$tool' is installed but failed to execute (--version)."
-        fi
-    fi
+    case "$tool" in
+        "gemini")
+            if ! gemini --help > /dev/null 2>&1; then
+                fail "Tool '$tool' is installed but failed to execute (--help)."
+            fi
+            ;;
+        "gh")
+            if ! gh --version > /dev/null 2>&1; then
+                fail "Tool '$tool' is installed but failed to execute (--version)."
+            fi
+            ;;
+        "jq")
+            if ! echo '{"test":1}' | jq . > /dev/null 2>&1; then
+                fail "Tool '$tool' is installed but failed to execute."
+            fi
+            ;;
+        "git")
+            if ! git --version > /dev/null 2>&1; then
+                fail "Tool '$tool' is installed but failed to execute."
+            fi
+            ;;
+        "timeout")
+            if ! timeout 1 sleep 0 > /dev/null 2>&1; then
+                fail "Tool '$tool' is installed but failed to execute."
+            fi
+            ;;
+        "flock")
+            if ! flock -n /tmp/grkr.lock sleep 0 > /dev/null 2>&1; then
+                fail "Tool '$tool' is installed but failed to execute."
+            fi
+            ;;
+    esac
 done
-log_info "✓ Required tools (${REQUIRED_TOOLS[*]}) are available."
+log_info "✓ Required tools (${REQUIRED_TOOLS[*]}) are available and functional."
 
 # 2. Comprehensive GitHub Token Scope Validation
 log_info "Verifying GitHub authentication and token scopes..."
-if ! gh auth status > /dev/null 2>&1; then
+AUTH_JSON=$(gh auth status --json hosts 2>/dev/null)
+if [ $? -ne 0 ]; then
     fail "gh auth status failed. Please run 'gh auth login'."
 fi
 
-# Parsing scopes from gh auth status output
-# Output format example: - Token scopes: 'gist', 'project', 'read:org', 'repo', 'workflow'
-SCOPES=$(gh auth status 2>&1 | grep "Token scopes:" | sed "s/.*Token scopes: //" | tr -d "'")
-REQUIRED_SCOPES=("repo" "project" "read:org")
+# Extract scopes for the active host
+SCOPES=$(echo "$AUTH_JSON" | jq -r '.hosts | to_entries[] | .value[] | select(.active == true) | .scopes')
+if [ -z "$SCOPES" ] || [ "$SCOPES" == "null" ]; then
+    # Fallback: get scopes from the first host if none are explicitly active
+    SCOPES=$(echo "$AUTH_JSON" | jq -r '.hosts | to_entries[0] | .value[0] | .scopes')
+fi
 
+REQUIRED_SCOPES=("repo" "project" "read:org")
 for scope in "${REQUIRED_SCOPES[@]}"; do
-    if [[ ! ",$SCOPES," =~ ", $scope," ]] && [[ ! ",$SCOPES," =~ ",$scope," ]]; then
-        # Handle cases with and without leading spaces
-        if [[ "$SCOPES" != *"$scope"* ]]; then
-             fail "GitHub token is missing required scope: '$scope'. Current scopes: $SCOPES"
-        fi
+    # Check if scope is in the comma-separated list
+    if [[ ! ", $SCOPES," =~ ", $scope," ]] && [[ ! ",$SCOPES," =~ ",$scope," ]]; then
+         fail "GitHub token is missing required scope: '$scope'. Current scopes: $SCOPES"
     fi
 done
 log_info "✓ GitHub token has required scopes (${REQUIRED_SCOPES[*]})."
@@ -93,11 +118,12 @@ log_info "✓ Git remote and MAIN_BRANCH are correctly configured."
 
 # 4. Detailed GitHub Project V2 Validation
 log_info "Verifying GitHub Project V2 ($PROJECT_NUMBER) for owner $PROJECT_OWNER..."
-PROJECT_DATA=$(gh project view "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --format json 2>/dev/null)
-if [ $? -ne 0 ]; then
+# Check if project exists
+if ! gh project view "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" > /dev/null 2>&1; then
     fail "GitHub Project $PROJECT_NUMBER not found for owner $PROJECT_OWNER."
 fi
 
+# Fetch field list
 PROJECT_FIELDS=$(gh project field-list "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --format json 2>/dev/null)
 if [ $? -ne 0 ]; then
     fail "Failed to fetch field list for project $PROJECT_NUMBER."
@@ -109,22 +135,31 @@ if [ $? -ne 0 ]; then
     fail "Project field '$STATUS_FIELD_NAME' not found."
 fi
 
-for val in "$TODO_VALUE" "$BACKLOG_VALUE"; do
+for val in "$TODO_VALUE" "$IN_PROGRESS_VALUE" "$DONE_VALUE" "$BACKLOG_VALUE"; do
     if ! echo "$STATUS_FIELD" | jq -e ".options[] | select(.name == \"$val\")" > /dev/null; then
         fail "Project field '$STATUS_FIELD_NAME' is missing required option: '$val'."
     fi
 done
+log_info "✓ Project field '$STATUS_FIELD_NAME' has all required options."
 
-# Verify Priority field
+# Verify Priority field and options
 PRIORITY_FIELD=$(echo "$PROJECT_FIELDS" | jq -e ".fields[] | select(.name == \"$PRIORITY_FIELD_NAME\")")
 if [ $? -ne 0 ]; then
     fail "Project field '$PRIORITY_FIELD_NAME' not found."
 fi
 
 if [[ "$PRIORITY_MODE" == "single_select" ]]; then
-    if ! echo "$PRIORITY_FIELD" | jq -e ".options | length > 0" > /dev/null; then
-        fail "Project field '$PRIORITY_FIELD_NAME' is configured as single_select but has no options."
-    fi
+    # Split PRIORITY_ORDER by comma
+    IFS=',' read -ra ADDR <<< "$PRIORITY_ORDER"
+    for val in "${ADDR[@]}"; do
+        # Trim leading/trailing whitespace
+        val=$(echo "$val" | xargs)
+        if [ -z "$val" ]; then continue; fi
+        if ! echo "$PRIORITY_FIELD" | jq -e ".options[] | select(.name == \"$val\")" > /dev/null; then
+            fail "Project field '$PRIORITY_FIELD_NAME' is missing required option: '$val'."
+        fi
+    done
+    log_info "✓ Project field '$PRIORITY_FIELD_NAME' has all required options ($PRIORITY_ORDER)."
 fi
 
 # 5. Directory permission checks
