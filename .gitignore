@@ -1,0 +1,4 @@
+.grkr/logs/*
+.grkr/locks/*
+.grkr/state/*
+.grkr/worktrees/*
